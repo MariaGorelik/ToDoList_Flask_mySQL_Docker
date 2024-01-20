@@ -1,0 +1,16 @@
+# Use the official SQLite image as the base image
+FROM python:3.8
+
+RUN pip install flask flask_sqlalchemy
+
+# Set the working directory inside the container
+WORKDIR D:\Web\ToDoList
+
+# Copy the database file to the container
+COPY database.db .
+COPY models.py .
+
+# Expose any ports if needed (for example, if you're using a database that requires it)
+# EXPOSE 5432
+
+CMD ["python", "models.py"]
