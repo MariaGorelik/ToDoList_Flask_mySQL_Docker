@@ -1,1 +1,3 @@
 database/mysql.sock
+.idea
+__pycache__
