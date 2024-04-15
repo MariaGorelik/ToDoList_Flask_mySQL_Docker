@@ -77,7 +77,7 @@ def login():
         if check_user(username, password):
             session['username'] = username
             return redirect(url_for('main_page'))
-        return render_template('login.html', error_message='Неверное имя пользователя или пароль')
+        return render_template('login.html', error_message='Invalid username or password')
     return render_template('login.html')
 
 
@@ -105,6 +105,26 @@ def sign_up():
 def logout():
     session.pop('username', None)
     return redirect(url_for('login'))
+
+
+@app.route('/delete_account', methods=['GET', 'POST'])
+def delete_account():
+    if 'username' not in session:
+        abort(403)
+    else:
+        if request.method == 'POST':
+            password = request.form['password']
+            if check_user(session['username'], password):
+                with connection.cursor() as cursor:
+                    user_query = f"SELECT * FROM users WHERE username = '{session['username']}' AND password = '{password}'"
+                    cursor.execute(user_query)
+                    user = cursor.fetchone()
+                    delete_query = f"DELETE FROM users WHERE id = '{user['id']}'"
+                    cursor.execute(delete_query)
+                session.pop('username', None)
+                return redirect(url_for('login'))
+            return render_template('delete_account.html', error_message='Invalid password')
+        return render_template('delete_account.html')
 
 
 @app.errorhandler(404)

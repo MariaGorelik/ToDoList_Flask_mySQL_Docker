@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete account</title>
+    <style>
+        body {
+            background-color: #FCFADC;
+        }
+        .container {
+            display: flex;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Delete account</h1>
+    {% if error_message %}
+    <p style="color: red;">{{ error_message }}</p>
+    {% endif %}
+    <form method="POST" action="{{ url_for('delete_account') }}">
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br><br>
+        <input type="submit" value="Delete account">
+    </form>
+<br>
+<a href="{{ url_for('main_page') }}">Go to home page</a>
+</div>
+</body>
+</html>
