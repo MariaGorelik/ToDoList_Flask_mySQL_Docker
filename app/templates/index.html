@@ -25,7 +25,7 @@ body {
     <ul>
       {% for note in notes %}
       <li>
-        <div class="note">{{ note['content'] }}</div>
+        <div class="note">{{ note['note'] }}</div>
         <a href="{{ url_for('delete_note', note_id=note['id']) }}">Delete</a>
       </li>
       {% endfor %}

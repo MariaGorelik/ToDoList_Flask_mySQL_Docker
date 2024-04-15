@@ -1,26 +1,10 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, abort
 import pymysql
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dsfgj56547jgfkh90gh4ogot'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 
-
-# try:
-#     connection = pymysql.connect(
-#         host='mysql-db',
-#         port=3306,
-#         user='root',
-#         password='hytgbn',
-#         database='todolist',
-#         cursorclass=pymysql.cursors.DictCursor
-#     )
-#     print("successfully connected...")
-#     print("#" * 20)
-#
-# except Exception as ex:
-#     print("Connection refused...")
-#     print(ex)
+#ToDo захешировать пароли
 
 
 connection = pymysql.connect(
@@ -38,7 +22,7 @@ print("#" * 20)
 
 def check_user(username, password):
     with connection.cursor() as cursor:
-        query = f"SELECT * FROM users WHERE username = '{username}' AND userPassword = '{password}'"
+        query = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"
         cursor.execute(query)
         result = cursor.fetchone()
         return result is not None
@@ -53,14 +37,14 @@ def main_page():
         cursor.execute(user_query)
         user = cursor.fetchone()
         if request.method == 'GET':
-            notes_query = f"SELECT * FROM notes WHERE userID = {user['id']}"
+            notes_query = f"SELECT * FROM notes WHERE user_id = {user['id']}"
             cursor.execute(notes_query)
             notes = cursor.fetchall()
             return render_template('index.html', notes=notes)
         # post
         note = request.form.get('note')
         if note:
-            insert_note = f"INSERT INTO notes (userID, content) VALUES ({user['id']}, '{note}')"
+            insert_note = f"INSERT INTO notes (user_id, note) VALUES ({user['id']}, '{note}')"
             cursor.execute(insert_note)
             connection.commit()
             return redirect(url_for('main_page'))
@@ -70,9 +54,14 @@ def main_page():
 def delete_note(note_id):
     if 'username' in session:
         with connection.cursor() as cursor:
-            get_query = f"SELECT id FROM notes WHERE id = {note_id}"
+            get_query = f"SELECT * FROM notes WHERE id = {note_id}"
             cursor.execute(get_query)
             result = cursor.fetchone()
+            user_query = f"SELECT * FROM users WHERE username = '{session['username']}'"
+            cursor.execute(user_query)
+            user = cursor.fetchone()
+            if user['id'] != result['user_id']:
+                abort(403)
             if result is not None:
                 delete_query = f"DELETE FROM notes WHERE id = {note_id}"
                 cursor.execute(delete_query)
@@ -104,7 +93,7 @@ def sign_up():
         isFound = cursor.fetchone()
         if isFound is not None:
             return render_template('sign_up.html', error_message='This username already exists')
-        add_user = f"INSERT INTO users (username, userPassword) VALUES ('{username}', '{password}')"
+        add_user = f"INSERT INTO users (username, password) VALUES ('{username}', '{password}')"
         cursor.execute(add_user)
         connection.commit()
         session['username'] = username
